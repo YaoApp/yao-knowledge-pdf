@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -21,12 +20,20 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 	var err error
 
 	if len(args) == 0 {
-		return nil, fmt.Errorf("missing file path")
+		bytes, err := jsoniter.Marshal(map[string]interface{}{"code": 400, "message": "missing file path"})
+		if err != nil {
+			return nil, err
+		}
+		return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 	}
 
 	path, ok := args[0].(string)
 	if !ok {
-		return nil, fmt.Errorf("invalid file path")
+		bytes, err := jsoniter.Marshal(map[string]interface{}{"code": 400, "message": "invalid file path"})
+		if err != nil {
+			return nil, err
+		}
+		return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 	}
 
 	switch strings.ToLower(method) {
@@ -56,7 +63,11 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 		return &grpc.Response{Bytes: bytes, Type: "array"}, nil
 
 	default:
-		return nil, fmt.Errorf("invalid method")
+		bytes, err := jsoniter.Marshal(map[string]interface{}{"code": 404, "message": "invalid method"})
+		if err != nil {
+			return nil, err
+		}
+		return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 	}
 
 }
