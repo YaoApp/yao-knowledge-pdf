@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
@@ -18,16 +19,25 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 	var v interface{}
 	var err error
 
+	if len(args) == 0 {
+		return nil, fmt.Errorf("missing file path")
+	}
+
+	path, ok := args[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid file path")
+	}
+
 	switch method {
 	case "text":
-		v, err = pdf.Text(args[0].(string))
+		v, err = pdf.Text(path)
 		if err != nil {
 			return nil, err
 		}
 		break
 
 	case "content":
-		v, err = pdf.Content(args[0].(string))
+		v, err = pdf.Content(path)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +72,7 @@ func (pdf *PDF) Text(path string) (string, error) {
 	return buf.String(), nil
 }
 
-// Content get the  content of the pdf file  (including all font and formatting information)
+// Content get the content of the pdf file  (including all font and formatting information)
 func (pdf *PDF) Content(path string) ([]string, error) {
 
 	f, r, err := reader.Open(path)
