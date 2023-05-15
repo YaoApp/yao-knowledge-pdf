@@ -40,7 +40,11 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 	case "text":
 		v, err = pdf.Text(path)
 		if err != nil {
-			return nil, err
+			bytes, err := jsoniter.Marshal(map[string]interface{}{"code": 404, "message": err.Error()})
+			if err != nil {
+				return nil, err
+			}
+			return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 		}
 
 		bytes, err := jsoniter.Marshal(v)
@@ -52,7 +56,11 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 	case "content":
 		v, err = pdf.Content(path)
 		if err != nil {
-			return nil, err
+			bytes, err := jsoniter.Marshal(map[string]interface{}{"code": 404, "message": err.Error()})
+			if err != nil {
+				return nil, err
+			}
+			return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 		}
 
 		bytes, err := jsoniter.Marshal(v)
