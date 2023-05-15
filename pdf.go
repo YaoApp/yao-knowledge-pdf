@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 	reader "github.com/ledongthuc/pdf"
@@ -28,30 +29,36 @@ func (pdf *PDF) Exec(method string, args ...interface{}) (*grpc.Response, error)
 		return nil, fmt.Errorf("invalid file path")
 	}
 
-	switch method {
+	switch strings.ToLower(method) {
 	case "text":
 		v, err = pdf.Text(path)
 		if err != nil {
 			return nil, err
 		}
-		break
+
+		bytes, err := jsoniter.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		return &grpc.Response{Bytes: bytes, Type: "string"}, nil
 
 	case "content":
 		v, err = pdf.Content(path)
 		if err != nil {
 			return nil, err
 		}
-		break
+
+		bytes, err := jsoniter.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+
+		return &grpc.Response{Bytes: bytes, Type: "array"}, nil
 
 	default:
-		v = map[string]interface{}{"name": method, "args": args}
+		return nil, fmt.Errorf("invalid method")
 	}
 
-	bytes, err := jsoniter.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	return &grpc.Response{Bytes: bytes, Type: "map"}, nil
 }
 
 // Text get the plain text content of the pdf file
